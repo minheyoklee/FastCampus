@@ -26,17 +26,19 @@ pipeline {
 
         stage('Build Docker Image by Jib & Push to AWS ECR Repository') {
             steps {
-                withAWS(
-                    region: "${region}",
-                    credentials: "aws-key"
-                ) {
-                    ecrLogin()
-
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-key'
+                ]]) {
                     sh """
                         cd ${mainDir}
 
+                        export ECR_PASSWORD=\$(aws ecr get-login-password --region ${region})
+
                         ./gradlew jib \
                             -Djib.to.image=${ecrUrl}/${repository}:${currentBuild.number} \
+                            -Djib.to.auth.username=AWS \
+                            -Djib.to.auth.password="\$ECR_PASSWORD" \
                             -Djib.console=plain
                     """
                 }
@@ -45,14 +47,15 @@ pipeline {
 
         stage('Deploy to AWS EC2 VM') {
             steps {
-                sshagent(credentials: ["deploy-key"]) {
+                sshagent(credentials: ['deploy-key']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ubuntu@${deployHost} '
                             aws ecr get-login-password --region ${region} |
                             docker login --username AWS --password-stdin ${ecrUrl}
 
-                            docker run -d -p 80:8080 \
-                            ${ecrUrl}/${repository}:${currentBuild.number}
+                            docker run -d \
+                                -p 80:8080 \
+                                ${ecrUrl}/${repository}:${currentBuild.number}
                         '
                     """
                 }
