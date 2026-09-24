@@ -1,56 +1,80 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.7.1'
-    id 'io.spring.dependency-management' version '1.0.12.RELEASE'
-    id 'com.google.cloud.tools.jib' version '3.3.1'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.google.cloud.tools.jib' version '3.5.4'
 }
 
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:2.7.1'
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.1'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools:2.7.1'
+group = 'com.test'
+version = '0.0.1-SNAPSHOT'
+description = 'test-docker-spring-boot'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 repositories {
     mavenCentral()
 }
 
-version = '0.0.1-SNAPSHOT'
-description = 'test-docker-spring-boot'
-group = 'com.test'
-
-java.sourceCompatibility = JavaVersion.VERSION_11
-
-jar {
-    enabled = false
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
+jar {
+    enabled = false
+}
+
 jib {
     from {
-        image = 'adoptopenjdk/openjdk11:alpine-jre'
+        image = 'eclipse-temurin:25-jre-alpine'
     }
-    allowInsecureRegistries = true
-    container {
-        entrypoint = ['java', '-Dspring.profiles.active=test', '-jar', 'test-docker-spring-boot-0.0.1-SNAPSHOT.jar']
 
-        jvmFlags = ['-Xms512m', '-Xmx512m', '-Xdebug', '-XshowSettings:vm', '-XX:+UnlockExperimentalVMOptions', '-XX:+UseContainerSupport']
+    to {
+        image = 'ec2-15-165-232-8.ap-northeast-2.compute.amazonaws.com:5000/test'
+        tags = ['1.0']
+    }
+
+    allowInsecureRegistries = true
+
+    container {
+        entrypoint = [
+            'java',
+            '-Dspring.profiles.active=test',
+            '-jar',
+            'test-docker-spring-boot-0.0.1-SNAPSHOT.jar'
+        ]
+
+        jvmFlags = [
+            '-Xms512m',
+            '-Xmx512m',
+            '-Xdebug',
+            '-XshowSettings:vm',
+            '-XX:+UnlockExperimentalVMOptions',
+            '-XX:+UseContainerSupport'
+        ]
+
         ports = ['8080']
 
-        environment = [SPRING_OUTPUT_ANSI_ENABLED: "ALWAYS"]
-        labels = [version:project.version, name:project.name, group:project.group]
+        environment = [
+            SPRING_OUTPUT_ANSI_ENABLED: 'ALWAYS'
+        ]
+
+        labels = [
+            version: project.version,
+            name: project.name,
+            group: project.group
+        ]
 
         creationTime = 'USE_CURRENT_TIMESTAMP'
         format = 'Docker'
-    }
-    extraDirectories {
-        paths {
-            path {
-                from = file('build/libs')
-            }
-        }
     }
 }

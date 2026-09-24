@@ -1,14 +1,14 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.7.1'
-    id 'io.spring.dependency-management' version '1.0.12.RELEASE'
-    id 'com.google.cloud.tools.jib' version '3.3.1'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.google.cloud.tools.jib' version '3.5.4'
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:2.7.1'
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.1'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools:2.7.1'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
 repositories {
@@ -19,7 +19,9 @@ version = '0.0.1-SNAPSHOT'
 description = 'test-docker-spring-boot'
 group = 'com.test'
 
-java.sourceCompatibility = JavaVersion.VERSION_11
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(25) }
+}
 
 jar {
     enabled = false
@@ -31,7 +33,7 @@ tasks.withType(JavaCompile) {
 
 jib {
     from {
-        image = 'adoptopenjdk/openjdk11:alpine-jre'
+        image = 'eclipse-temurin:25-jre-alpine'
     }
     container {
         entrypoint = ['java', '-Dspring.profiles.active=test', '-jar', 'test-docker-spring-boot-0.0.1-SNAPSHOT.jar']

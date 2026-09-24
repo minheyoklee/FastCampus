@@ -1,4 +1,4 @@
-FROM sonatype/nexus3:3.32.0
+FROM sonatype/nexus3:3.96.0-alpine
 
 USER root
 

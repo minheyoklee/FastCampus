@@ -1,4 +1,4 @@
-FROM openjdk:11-jdk-slim-bullseye
+FROM eclipse-temurin:25-jdk-alpine
 COPY . /app/examples
 WORKDIR /app
 RUN javac examples/*.java

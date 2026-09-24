@@ -1,20 +1,20 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.7.1'
-    id 'io.spring.dependency-management' version '1.0.12.RELEASE'
-    id 'com.google.cloud.tools.jib' version '3.3.1'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.google.cloud.tools.jib' version '3.5.4'
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:2.7.1'
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.1'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools:2.7.1'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
 repositories {
-//  mavenCentral()
+    mavenCentral()
     maven {
-        url "http://<Nexus Private IP>:8081/repository/<nexus artifact repository Name>"
+        url "http://ec2-15-165-232-8.ap-northeast-2.compute.amazonaws.com:8081/repository/test-docker-nexus-repository/"
         allowInsecureProtocol true
     }
 
@@ -24,7 +24,9 @@ version = '0.0.1-SNAPSHOT'
 description = 'test-docker-spring-boot'
 group = 'com.test'
 
-java.sourceCompatibility = JavaVersion.VERSION_11
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(25) }
+}
 
 jar {
 	enabled = false
@@ -40,11 +42,11 @@ test {
 
 jib {
     from {
-        image = 'adoptopenjdk/openjdk11:alpine-jre'
+        image = 'eclipse-temurin:25-jre-alpine'
     }
     to {
-        image = '<AWS ECR URL>/<Image Repository Name>'
-        tags = ['<Image Tag Name>']
+        image = '808101328892.dkr.ecr.ap-northeast-2.amazonaws.com/test'
+        tags = ["1.0"]
     }
     container {
         entrypoint = ['java', '-Dspring.profiles.active=test', '-jar', 'test-docker-spring-boot-0.0.1-SNAPSHOT.jar']
